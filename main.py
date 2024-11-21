@@ -119,7 +119,7 @@ def main(stdscr):
         stdscr.addstr(5, 48, "Notes", curses.color_pair(1))
         stdscr.addstr(6, 2, "-" * 80, curses.color_pair(1))
         
-        # Display results with wrapping/extending for Item column
+        # Display results with wrapping for both Item and Notes columns
         current_row = 7
         visible_rows = curses.LINES - 7
         start_idx = scroll_position
@@ -133,21 +133,24 @@ def main(stdscr):
             # Display Location
             stdscr.addstr(current_row, 2, location, curses.color_pair(1))
             
-            if notes.strip():  # If Notes has content, wrap Item
-                wrapped_item = wrap_text(item, 28)  # Break on word boundaries
-                for i, line in enumerate(wrapped_item):
-                    if i == 0:  # First line goes next to Location
-                        stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
-                    else:  # Subsequent lines are indented
+            # Handle Item column
+            wrapped_item = wrap_text(item, 28)  # Break on word boundaries
+            for i, line in enumerate(wrapped_item):
+                if i == 0:  # First line goes next to Location
+                    stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
+                else:  # Subsequent lines are indented
+                    current_row += 1
+                    stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
+            
+            # Handle Notes column
+            if notes.strip():
+                wrapped_notes = wrap_text(notes, 32)  # Break notes on word boundaries
+                for i, note_line in enumerate(wrapped_notes):
+                    if i == 0:  # First line goes on same row as first item line
+                        stdscr.addstr(current_row - (len(wrapped_item) - 1), 48, note_line[:32], curses.color_pair(1))
+                    else:  # Subsequent lines go below
                         current_row += 1
-                        stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
-                # Display Notes on the first line
-                stdscr.addstr(current_row - (len(wrapped_item) - 1), 48, notes[:32], curses.color_pair(1))
-            else:  # If Notes is empty, extend Item into Notes area
-                if len(item) > 28:  # If Item is longer than its column
-                    stdscr.addstr(current_row, 18, item[:62], curses.color_pair(1))  # Extend into Notes area
-                else:
-                    stdscr.addstr(current_row, 18, item, curses.color_pair(1))
+                        stdscr.addstr(current_row, 48, note_line[:32], curses.color_pair(1))
             
             current_row += 1
             
