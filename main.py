@@ -83,7 +83,7 @@ def main(stdscr):
         
         # Define column positions and widths based on screen size
         loc_start = 2
-        loc_width = 15
+        loc_width = 10
         item_start = loc_start + loc_width + 1
         item_width = 28
         notes_start = item_start + item_width + 2
