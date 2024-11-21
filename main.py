@@ -79,6 +79,15 @@ def main(stdscr):
         
         # Get terminal dimensions
         height = curses.LINES
+        width = curses.COLS
+        
+        # Define column positions and widths based on screen size
+        loc_start = 2
+        loc_width = 15
+        item_start = loc_start + loc_width + 1
+        item_width = 28
+        notes_start = item_start + item_width + 2
+        notes_width = max(10, width - notes_start - 2)  # Ensure at least 10 chars, but shrink if needed
         
         # Display title and search field
         stdscr.addstr(1, 2, "Search the Fablab Inventory", curses.color_pair(1))
@@ -114,10 +123,10 @@ def main(stdscr):
             stdscr.addstr(3, 0, warning, curses.color_pair(1) | curses.A_BOLD)
         
         # Display results
-        stdscr.addstr(5, 2, "Location", curses.color_pair(1))
-        stdscr.addstr(5, 18, "Item", curses.color_pair(1))
-        stdscr.addstr(5, 48, "Notes", curses.color_pair(1))
-        stdscr.addstr(6, 2, "-" * 80, curses.color_pair(1))
+        stdscr.addstr(5, loc_start, "Location", curses.color_pair(1))
+        stdscr.addstr(5, item_start, "Item", curses.color_pair(1))
+        stdscr.addstr(5, notes_start, "Notes", curses.color_pair(1))
+        stdscr.addstr(6, 2, "-" * (width - 4), curses.color_pair(1))
         
         # Display results with wrapping for both Item and Notes columns
         current_row = 7
@@ -126,31 +135,31 @@ def main(stdscr):
         end_idx = min(len(results), scroll_position + visible_rows)
         
         for _, row in results.iloc[start_idx:end_idx].iterrows():
-            location = str(row.values[0])[:15]
+            location = str(row.values[0])[:loc_width]
             item = str(row.values[1])
             notes = str(row.values[5]) if pd.notna(row.values[5]) else ""
             
             # Display Location
-            stdscr.addstr(current_row, 2, location, curses.color_pair(1))
+            stdscr.addstr(current_row, loc_start, location, curses.color_pair(1))
             
             # Handle Item column
-            wrapped_item = wrap_text(item, 28)  # Break on word boundaries
+            wrapped_item = wrap_text(item, item_width)
             for i, line in enumerate(wrapped_item):
                 if i == 0:  # First line goes next to Location
-                    stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
+                    stdscr.addstr(current_row, item_start, line[:item_width], curses.color_pair(1))
                 else:  # Subsequent lines are indented
                     current_row += 1
-                    stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
+                    stdscr.addstr(current_row, item_start, line[:item_width], curses.color_pair(1))
             
             # Handle Notes column
             if notes.strip():
-                wrapped_notes = wrap_text(notes, 32)  # Break notes on word boundaries
+                wrapped_notes = wrap_text(notes, notes_width)
                 for i, note_line in enumerate(wrapped_notes):
                     if i == 0:  # First line goes on same row as first item line
-                        stdscr.addstr(current_row - (len(wrapped_item) - 1), 48, note_line[:32], curses.color_pair(1))
+                        stdscr.addstr(current_row - (len(wrapped_item) - 1), notes_start, note_line[:notes_width], curses.color_pair(1))
                     else:  # Subsequent lines go below
                         current_row += 1
-                        stdscr.addstr(current_row, 48, note_line[:32], curses.color_pair(1))
+                        stdscr.addstr(current_row, notes_start, note_line[:notes_width], curses.color_pair(1))
             
             current_row += 1
             
