@@ -80,27 +80,25 @@ def main(stdscr):
         # Get terminal dimensions
         height = curses.LINES
         
-        # Remove the top search field and only show the one with "Enter text to search:"
-        stdscr.addstr(height-3, 0, "Enter text to search: ")
-        search_box_start = 19  # Length of "Enter text to search: "
+        # Display title and search field
+        stdscr.addstr(1, 2, "Search the Fablab Inventory", curses.color_pair(1))
+        stdscr.addstr(2, 2, "Enter text to search: ", curses.color_pair(1))
         
         # Draw the search term with cursor
+        search_start = 24  # Position after "Enter text to search: "
         for i, char in enumerate(search_term):
             if i == cursor_pos:
-                stdscr.addstr(height-3, search_box_start + i, char, curses.A_REVERSE)
+                stdscr.addstr(2, search_start + i, char, curses.A_REVERSE)
             else:
-                stdscr.addstr(height-3, search_box_start + i, char)
+                stdscr.addstr(2, search_start + i, char)
         
         # If cursor is at the end, show a highlighted space
         if cursor_pos == len(search_term):
-            stdscr.addstr(height-3, search_box_start + len(search_term), " ", curses.A_REVERSE)
-
-        # Input and results display
-        stdscr.addstr(1, 3, "Search the Fablab Inventory", curses.color_pair(1))
-        stdscr.addstr(2, 2, "Enter text to search: ", curses.color_pair(1))
-        stdscr.addstr(2, 24, search_term + " " * 20, curses.color_pair(1))
-        stdscr.move(2, 24 + cursor_pos)
+            stdscr.addstr(2, search_start + len(search_term), " ", curses.A_REVERSE)
         
+        # Move cursor to correct position
+        stdscr.move(2, search_start + cursor_pos)
+
         # Clear results area
         stdscr.addstr(3, 0, " " * 80)
         stdscr.addstr(4, 0, "Results:")
