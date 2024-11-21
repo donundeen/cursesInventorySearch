@@ -1,0 +1,200 @@
+import curses
+import pandas as pd
+import re
+
+# Function to read data from Google Sheets CSV
+def load_data(sheet_url):
+    try:
+        data = pd.read_csv(sheet_url)
+        return data
+    except Exception as e:
+        return None
+    
+# Function to filter data based on search term
+def search_data(data, search_term):
+    # Check if data is empty
+    if data is None or data.empty:
+        return pd.DataFrame(), "Warning: No data loaded from CSV file!"
+    
+    if search_term == "":
+        return pd.DataFrame(), ""
+        
+    # Escape special regex characters in the search term
+    search_term = re.escape(search_term)
+    
+    # Perform case-insensitive search across all columns
+    filtered = data[data.apply(
+        lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
+    return filtered, ""
+
+def wrap_text(text, width):
+    """Break text into lines on word boundaries"""
+    words = text.split()
+    lines = []
+    current_line = []
+    current_length = 0
+    
+    for word in words:
+        if current_length + len(word) + 1 <= width:
+            current_line.append(word)
+            current_length += len(word) + 1
+        else:
+            lines.append(' '.join(current_line))
+            current_line = [word]
+            current_length = len(word)
+    
+    if current_line:
+        lines.append(' '.join(current_line))
+    return lines
+
+# Curses-based UI
+def main(stdscr):
+    # Initialize color pairs
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    stdscr.bkgd(' ', curses.color_pair(1))  # Set default background
+    
+    # Enable cursor blinking
+    curses.curs_set(2)  # 2 = blinking cursor, 1 = visible steady cursor, 0 = invisible
+    
+    # URL for the published Google Sheet (CSV format)
+    sheet_url = "https://docs.google.com/spreadsheets/d/1PzYgCDP4Xb5Dv-2rx-G6PfGiw7bu-m-pfrca8q9V9oA/export?format=csv"
+
+    # Load the data
+    data = load_data(sheet_url)
+
+    # Initialize curses
+    curses.curs_set(1)  # Show the cursor for text input
+    stdscr.clear()
+    stdscr.refresh()
+
+    # Initialize variables
+    search_term = ""
+    cursor_pos = 0
+    scroll_position = 0
+    results, warning = search_data(data, "")  # Initialize both results and warning
+    
+    while True:
+        stdscr.clear()
+        
+        # Get terminal dimensions
+        height = curses.LINES
+        
+        # Remove the top search field and only show the one with "Enter text to search:"
+        stdscr.addstr(height-3, 0, "Enter text to search: ")
+        search_box_start = 19  # Length of "Enter text to search: "
+        
+        # Draw the search term with cursor
+        for i, char in enumerate(search_term):
+            if i == cursor_pos:
+                stdscr.addstr(height-3, search_box_start + i, char, curses.A_REVERSE)
+            else:
+                stdscr.addstr(height-3, search_box_start + i, char)
+        
+        # If cursor is at the end, show a highlighted space
+        if cursor_pos == len(search_term):
+            stdscr.addstr(height-3, search_box_start + len(search_term), " ", curses.A_REVERSE)
+
+        # Input and results display
+        stdscr.addstr(1, 3, "Search the Fablab Inventory", curses.color_pair(1))
+        stdscr.addstr(2, 2, "Enter text to search: ", curses.color_pair(1))
+        stdscr.addstr(2, 24, search_term + " " * 20, curses.color_pair(1))
+        stdscr.move(2, 24 + cursor_pos)
+        
+        # Clear results area
+        stdscr.addstr(3, 0, " " * 80)
+        stdscr.addstr(4, 0, "Results:")
+        stdscr.addstr(5, 0, " " * 80)
+
+        # Clear all lines below the search input
+        for i in range(3, curses.LINES):
+            stdscr.move(i, 0)
+            stdscr.clrtoeol()
+        
+        # Display warning if exists
+        if warning:
+            stdscr.addstr(3, 0, warning, curses.color_pair(1) | curses.A_BOLD)
+        
+        # Display results
+        stdscr.addstr(5, 2, "Location", curses.color_pair(1))
+        stdscr.addstr(5, 18, "Item", curses.color_pair(1))
+        stdscr.addstr(5, 48, "Notes", curses.color_pair(1))
+        stdscr.addstr(6, 2, "-" * 80, curses.color_pair(1))
+        
+        # Display results with wrapping/extending for Item column
+        current_row = 7
+        visible_rows = curses.LINES - 7
+        start_idx = scroll_position
+        end_idx = min(len(results), scroll_position + visible_rows)
+        
+        for _, row in results.iloc[start_idx:end_idx].iterrows():
+            location = str(row.values[0])[:15]
+            item = str(row.values[1])
+            notes = str(row.values[5]) if pd.notna(row.values[5]) else ""
+            
+            # Display Location
+            stdscr.addstr(current_row, 2, location, curses.color_pair(1))
+            
+            if notes.strip():  # If Notes has content, wrap Item
+                wrapped_item = wrap_text(item, 28)  # Break on word boundaries
+                for i, line in enumerate(wrapped_item):
+                    if i == 0:  # First line goes next to Location
+                        stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
+                    else:  # Subsequent lines are indented
+                        current_row += 1
+                        stdscr.addstr(current_row, 18, line[:28], curses.color_pair(1))
+                # Display Notes on the first line
+                stdscr.addstr(current_row - (len(wrapped_item) - 1), 48, notes[:32], curses.color_pair(1))
+            else:  # If Notes is empty, extend Item into Notes area
+                if len(item) > 28:  # If Item is longer than its column
+                    stdscr.addstr(current_row, 18, item[:62], curses.color_pair(1))  # Extend into Notes area
+                else:
+                    stdscr.addstr(current_row, 18, item, curses.color_pair(1))
+            
+            current_row += 1
+            
+            # Prevent overflow beyond screen bottom
+            if current_row >= curses.LINES - 2:  # Leave room for scroll indicator
+                break
+        
+        # Update scroll position handling
+        if len(results) > visible_rows:
+            scroll_msg = f"More results, scroll with arrow keys ({scroll_position + 1}-{end_idx} of {len(results)})"
+            stdscr.addstr(curses.LINES-1, 2, scroll_msg, curses.color_pair(1) | curses.A_BOLD)
+
+        stdscr.refresh()
+
+        # Get user input
+        key = stdscr.getch()
+        
+        # Handle special keys
+        if key == curses.KEY_BACKSPACE or key == 127:  # Backspace
+            if cursor_pos > 0:
+                search_term = search_term[:cursor_pos-1] + search_term[cursor_pos:]
+                cursor_pos -= 1
+                results, warning = search_data(data, search_term)  # Search after backspace
+        elif key == curses.KEY_LEFT:  # Left arrow
+            cursor_pos = max(0, cursor_pos - 1)
+        elif key == curses.KEY_RIGHT:  # Right arrow
+            cursor_pos = min(len(search_term), cursor_pos + 1)
+        elif key == 27:  # ESC key to exit
+            break  # Now this break is inside a loop
+        elif key == curses.KEY_UP:  # Up arrow
+            if scroll_position > 0:
+                scroll_position -= 1
+        elif key == curses.KEY_DOWN:  # Down arrow
+            if len(results) > scroll_position + (curses.LINES - 7):
+                scroll_position += 1
+        else:
+            # Insert character at cursor position
+            search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
+            cursor_pos += 1
+            results, warning = search_data(data, search_term)  # Search after adding character
+
+    stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
+    stdscr.refresh()
+    stdscr.getch()
+
+# Run the curses app
+if __name__ == "__main__":
+    curses.wrapper(main)
