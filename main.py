@@ -203,6 +203,7 @@ def main(stdscr):
             # Insert character at cursor position
             search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
             cursor_pos += 1
+            scroll_position = 0
             results, warning = search_data(data, search_term)  # Search after adding character
 
     stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
