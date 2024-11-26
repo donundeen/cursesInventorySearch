@@ -82,7 +82,7 @@ def main(stdscr):
         width = curses.COLS
         
         # Define column positions and widths based on screen size
-        loc_start = 2
+        loc_start = 1
         loc_width = 10
         item_start = loc_start + loc_width + 1
         item_width = 28
@@ -90,8 +90,8 @@ def main(stdscr):
         notes_width = max(10, width - notes_start - 2)  # Ensure at least 10 chars, but shrink if needed
         
         # Display title and search field
-        stdscr.addstr(1, 2, "Search the Fablab Inventory", curses.color_pair(1))
-        stdscr.addstr(2, 2, "Enter text to search: ", curses.color_pair(1))
+        stdscr.addstr(1, 1, "Search the Fablab Inventory", curses.color_pair(1))
+        stdscr.addstr(2, 1, "Enter text to search: ", curses.color_pair(1))
         
         # Draw the search term with cursor
         search_start = 24  # Position after "Enter text to search: "
@@ -123,14 +123,14 @@ def main(stdscr):
             stdscr.addstr(3, 0, warning, curses.color_pair(1) | curses.A_BOLD)
         
         # Display results
-        stdscr.addstr(5, loc_start, "Location", curses.color_pair(1))
-        stdscr.addstr(5, item_start, "Item", curses.color_pair(1))
-        stdscr.addstr(5, notes_start, "Notes", curses.color_pair(1))
-        stdscr.addstr(6, 2, "-" * (width - 4), curses.color_pair(1))
+        stdscr.addstr(4, loc_start, "Location", curses.color_pair(1))
+        stdscr.addstr(4, item_start, "Item", curses.color_pair(1))
+        stdscr.addstr(4, notes_start, "Notes", curses.color_pair(1))
+        stdscr.addstr(5, 2, "-" * (width - 4), curses.color_pair(1))
         
         # Display results with wrapping for both Item and Notes columns
-        current_row = 7
-        visible_rows = curses.LINES - 7
+        current_row = 6
+        visible_rows = curses.LINES - 6
         start_idx = scroll_position
         end_idx = min(len(results), scroll_position + visible_rows)
         
