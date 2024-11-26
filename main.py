@@ -94,7 +94,7 @@ def main(stdscr):
         stdscr.addstr(2, 1, "Enter text to search: ", curses.color_pair(1))
         
         # Draw the search term with cursor
-        search_start = 24  # Position after "Enter text to search: "
+        search_start = 23  # Position after "Enter text to search: "
         for i, char in enumerate(search_term):
             if i == cursor_pos:
                 stdscr.addstr(2, search_start + i, char, curses.A_REVERSE)
@@ -159,8 +159,10 @@ def main(stdscr):
                         stdscr.addstr(current_row - (len(wrapped_item) - 1), notes_start, note_line[:notes_width], curses.color_pair(1))
                     else:  # Subsequent lines go below
                         current_row += 1
-                        stdscr.addstr(current_row, notes_start, note_line[:notes_width], curses.color_pair(1))
-            
+                        try: 
+                            stdscr.addstr(current_row, notes_start, note_line[:notes_width], curses.color_pair(1))
+                        except:
+                            current_row -= 1        
             current_row += 1
             
             # Prevent overflow beyond screen bottom
