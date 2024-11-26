@@ -172,8 +172,10 @@ def main(stdscr):
         # Update scroll position handling
         if len(results) > visible_rows:
             scroll_msg = f"More results, scroll with arrow keys ({scroll_position + 1}-{end_idx} of {len(results)})"
-            stdscr.addstr(curses.LINES-1, 2, scroll_msg, curses.color_pair(1) | curses.A_BOLD)
-
+            try:
+                stdscr.addstr(curses.LINES-1, 2, scroll_msg, curses.color_pair(1) | curses.A_BOLD)
+            except:
+                pass
         stdscr.refresh()
 
         # Get user input
