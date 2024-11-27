@@ -1,6 +1,7 @@
 import curses
 import pandas as pd
 import re
+import subprocess
 
 # Function to read data from Google Sheets CSV
 def load_data(sheet_url):
@@ -46,6 +47,14 @@ def wrap_text(text, width):
     if current_line:
         lines.append(' '.join(current_line))
     return lines
+
+def speak_text(text):
+    """Speak the given text using flite"""
+    if text.strip():  # Only speak if there's actual text
+        try:
+            subprocess.run(['flite', '-t', text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass  # Silently fail if flite isn't available
 
 # Curses-based UI
 def main(stdscr):
@@ -186,7 +195,8 @@ def main(stdscr):
             if cursor_pos > 0:
                 search_term = search_term[:cursor_pos-1] + search_term[cursor_pos:]
                 cursor_pos -= 1
-                results, warning = search_data(data, search_term)  # Search after backspace
+                results, warning = search_data(data, search_term)
+                speak_text(search_term)  # Speak updated term
         elif key == curses.KEY_LEFT:  # Left arrow
             cursor_pos = max(0, cursor_pos - 1)
         elif key == curses.KEY_RIGHT:  # Right arrow
@@ -204,7 +214,8 @@ def main(stdscr):
             search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
             cursor_pos += 1
             scroll_position = 0
-            results, warning = search_data(data, search_term)  # Search after adding character
+            results, warning = search_data(data, search_term)
+            speak_text(search_term)  # Speak updated term
 
     stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
     stdscr.refresh()
