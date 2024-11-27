@@ -2,6 +2,13 @@ import curses
 import pandas as pd
 import re
 import subprocess
+import threading
+import time
+from threading import Timer
+
+# Add these variables at the global scope
+speech_timer = None
+last_spoken_term = ""
 
 # Function to read data from Google Sheets CSV
 def load_data(sheet_url):
@@ -47,6 +54,22 @@ def wrap_text(text, width):
     if current_line:
         lines.append(' '.join(current_line))
     return lines
+
+def debounced_speak(text):
+    """Speak text after a delay, canceling any pending speech"""
+    global speech_timer, last_spoken_term
+    
+    if speech_timer is not None:
+        speech_timer.cancel()
+    
+    if text.strip() and text != last_spoken_term:
+        def speak():
+            global last_spoken_term
+            speak_text(text)
+            last_spoken_term = text
+            
+        speech_timer = Timer(0.5, speak)
+        speech_timer.start()
 
 def speak_text(text):
     """Speak the given text using flite"""
@@ -196,7 +219,7 @@ def main(stdscr):
                 search_term = search_term[:cursor_pos-1] + search_term[cursor_pos:]
                 cursor_pos -= 1
                 results, warning = search_data(data, search_term)
-                speak_text(search_term)  # Speak updated term
+                debounced_speak(search_term)  # Debounced speech
         elif key == curses.KEY_LEFT:  # Left arrow
             cursor_pos = max(0, cursor_pos - 1)
         elif key == curses.KEY_RIGHT:  # Right arrow
@@ -215,7 +238,7 @@ def main(stdscr):
             cursor_pos += 1
             scroll_position = 0
             results, warning = search_data(data, search_term)
-            speak_text(search_term)  # Speak updated term
+            debounced_speak(search_term)  # Debounced speech
 
     stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
     stdscr.refresh()
@@ -223,4 +246,9 @@ def main(stdscr):
 
 # Run the curses app
 if __name__ == "__main__":
-    curses.wrapper(main)
+    try:
+        curses.wrapper(main)
+    finally:
+        # Clean up any pending speech timer
+        if speech_timer is not None:
+            speech_timer.cancel()
