@@ -32,9 +32,10 @@ def search_data(data, search_term):
     # Escape special regex characters in the search term
     search_term = re.escape(search_term)
     
-    # Perform case-insensitive search across all columns
-    filtered = data[data.apply(
-        lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)]
+    # Perform case-insensitive search across all columns using vectorized operations
+    mask = data.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)
+    filtered = data[mask]
+    
     return filtered, ""
 
 def wrap_text(text, width):
