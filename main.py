@@ -1,3 +1,4 @@
+import asyncio
 import curses
 import pandas as pd
 import re
@@ -11,9 +12,10 @@ speech_timer = None
 last_spoken_term = ""
 
 # Function to read data from Google Sheets CSV
-def load_data(sheet_url):
+async def load_data(sheet_url):
+    """Asynchronously read data from Google Sheets CSV"""
     try:
-        data = pd.read_csv(sheet_url)
+        data = await asyncio.to_thread(pd.read_csv, sheet_url)
         return data
     except Exception as e:
         return None
@@ -55,7 +57,7 @@ def wrap_text(text, width):
         lines.append(' '.join(current_line))
     return lines
 
-def debounced_speak(text):
+async def debounced_speak(text):
     """Speak text after a delay, canceling any pending speech"""
     global speech_timer, last_spoken_term
     
@@ -65,22 +67,22 @@ def debounced_speak(text):
     if text.strip() and text != last_spoken_term:
         def speak():
             global last_spoken_term
-            speak_text(text)
+            asyncio.run(speak_text(text))
             last_spoken_term = text
             
         speech_timer = Timer(0.5, speak)
         speech_timer.start()
 
-def speak_text(text):
-    """Speak the given text using flite"""
+async def speak_text(text):
+    """Speak the given text using flite asynchronously"""
     if text.strip():  # Only speak if there's actual text
         try:
-            subprocess.run(['flite', '-t', text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            await asyncio.to_thread(subprocess.run, ['flite', '-t', text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass  # Silently fail if flite isn't available
 
 # Curses-based UI
-def main(stdscr):
+async def main(stdscr):
     # Initialize color pairs
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
@@ -92,8 +94,8 @@ def main(stdscr):
     # URL for the published Google Sheet (CSV format)
     sheet_url = "https://docs.google.com/spreadsheets/d/1PzYgCDP4Xb5Dv-2rx-G6PfGiw7bu-m-pfrca8q9V9oA/export?format=csv"
 
-    # Load the data
-    data = load_data(sheet_url)
+    # Load the data asynchronously
+    data = await load_data(sheet_url)
 
     # Initialize curses
     curses.curs_set(1)  # Show the cursor for text input
@@ -219,7 +221,7 @@ def main(stdscr):
                 search_term = search_term[:cursor_pos-1] + search_term[cursor_pos:]
                 cursor_pos -= 1
                 results, warning = search_data(data, search_term)
-                debounced_speak(search_term)  # Debounced speech
+                await debounced_speak(search_term)  # Debounced speech
         elif key == curses.KEY_LEFT:  # Left arrow
             cursor_pos = max(0, cursor_pos - 1)
         elif key == curses.KEY_RIGHT:  # Right arrow
@@ -238,7 +240,10 @@ def main(stdscr):
             cursor_pos += 1
             scroll_position = 0
             results, warning = search_data(data, search_term)
-            debounced_speak(search_term)  # Debounced speech
+            await debounced_speak(search_term)  # Debounced speech
+
+        # Debounced speech
+        await debounced_speak(search_term)  # Call the debounced function asynchronously
 
     stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
     stdscr.refresh()
@@ -247,7 +252,7 @@ def main(stdscr):
 # Run the curses app
 if __name__ == "__main__":
     try:
-        curses.wrapper(main)
+        curses.wrapper(lambda stdscr: asyncio.run(main(stdscr)))
     finally:
         # Clean up any pending speech timer
         if speech_timer is not None:
