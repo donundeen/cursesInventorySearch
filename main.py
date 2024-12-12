@@ -92,6 +92,10 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
     global scroll_position, warning, debounce_timer
 
     # Handle special keys
+    if key in (curses.KEY_BREAK, 27):  # ESC key or Break key
+        return search_term, cursor_pos, False  # Exit the loop
+
+    # Handle other special keys (Backspace, Arrow keys, etc.)
     if key == curses.KEY_BACKSPACE or key == 127:  # Backspace
         if cursor_pos > 0:
             search_term = search_term[:cursor_pos-1] + search_term[cursor_pos:]
@@ -101,8 +105,6 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
         cursor_pos = max(0, cursor_pos - 1)
     elif key == curses.KEY_RIGHT:  # Right arrow
         cursor_pos = min(len(search_term), cursor_pos + 1)
-    elif key == 27:  # ESC key to exit
-        return False  # Exit the loop
     elif key == curses.KEY_UP:  # Up arrow
         if scroll_position > 0:
             scroll_position -= 1
