@@ -112,11 +112,14 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
     elif key == curses.KEY_DOWN:  # Down arrow
         if len(results) > scroll_position + (curses.LINES - 7):
             scroll_position += 1
-    else:
+    elif 0 <= key < 256:  # Check if key is a valid character code
         # Insert character at cursor position
         search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
         cursor_pos += 1
         scroll_position = 0
+    else:
+        # Ignore other keys
+        return search_term, cursor_pos, True
 
     # Reset the debounce timer on any key press
     reset_debounce_timer(results, search_term, stdscr)  # Pass results, search_term, and stdscr to reset_debounce_timer
