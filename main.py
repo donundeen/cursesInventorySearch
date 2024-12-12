@@ -93,7 +93,8 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
 
     # Handle special keys
     if key in (curses.KEY_BREAK, 27):  # ESC key or Break key
-        return search_term, cursor_pos, False  # Exit the loop
+        # Ignore these keys and do nothing
+        return search_term, cursor_pos, True  # Continue the loop
 
     # Handle other special keys (Backspace, Arrow keys, etc.)
     if key == curses.KEY_BACKSPACE or key == 127:  # Backspace
@@ -224,54 +225,61 @@ async def main(stdscr):
     cursor_pos = 0
     results, warning = search_data(data, "")  # Initialize both results and warning
     
-    while True:
-        stdscr.clear()
-        
-        print("display loop")
+    try:
+        while True:
+            stdscr.clear()
+            
+            print("display loop")
 
-        # Get terminal dimensions
-        height = curses.LINES
-        width = curses.COLS
-        
-        # Define column positions and widths based on screen size
-        loc_start = 1
-        loc_width = 10
-        item_start = loc_start + loc_width + 1
-        item_width = 28
-        notes_start = item_start + item_width + 2
-        notes_width = max(10, width - notes_start - 2)  # Ensure at least 10 chars, but shrink if needed
-        
-        # Display title and search field
-        stdscr.addstr(1, 1, "Search the Fablab Inventory", curses.color_pair(1))
-        stdscr.addstr(2, 1, "Enter text to search: ", curses.color_pair(1))
-        
-        # Draw the search term with cursor
-        search_start = 23  # Position after "Enter text to search: "
-        for i, char in enumerate(search_term):
-            if i == cursor_pos:
-                stdscr.addstr(2, search_start + i, char, curses.A_REVERSE)
-            else:
-                stdscr.addstr(2, search_start + i, char)
-        
-        # If cursor is at the end, show a highlighted space
-        if cursor_pos == len(search_term):
-            stdscr.addstr(2, search_start + len(search_term), " ", curses.A_REVERSE)
-        
-        # Move cursor to correct position
-        stdscr.move(2, search_start + cursor_pos)
+            # Get terminal dimensions
+            height = curses.LINES
+            width = curses.COLS
+            
+            # Define column positions and widths based on screen size
+            loc_start = 1
+            loc_width = 10
+            item_start = loc_start + loc_width + 1
+            item_width = 28
+            notes_start = item_start + item_width + 2
+            notes_width = max(10, width - notes_start - 2)  # Ensure at least 10 chars, but shrink if needed
+            
+            # Display title and search field
+            stdscr.addstr(1, 1, "Search the Fablab Inventory", curses.color_pair(1))
+            stdscr.addstr(2, 1, "Enter text to search: ", curses.color_pair(1))
+            
+            # Draw the search term with cursor
+            search_start = 23  # Position after "Enter text to search: "
+            for i, char in enumerate(search_term):
+                if i == cursor_pos:
+                    stdscr.addstr(2, search_start + i, char, curses.A_REVERSE)
+                else:
+                    stdscr.addstr(2, search_start + i, char)
+            
+            # If cursor is at the end, show a highlighted space
+            if cursor_pos == len(search_term):
+                stdscr.addstr(2, search_start + len(search_term), " ", curses.A_REVERSE)
+            
+            # Move cursor to correct position
+            stdscr.move(2, search_start + cursor_pos)
 
-        # Get user input
-        key = stdscr.getch()
-        search_term, cursor_pos, continue_loop = await handle_key_input(stdscr, key, search_term, cursor_pos, data)
-        if not continue_loop:
-            break  # Exit the loop if ESC key is pressed
+            # Get user input
+            key = stdscr.getch()
+            search_term, cursor_pos, continue_loop = await handle_key_input(stdscr, key, search_term, cursor_pos, data)
+            if not continue_loop:
+                break  # Exit the loop if ESC key is pressed
 
-        # Debounced speech
-        await debounced_speak(search_term)  # Call the debounced function asynchronously
+            # Debounced speech
+            await debounced_speak(search_term)  # Call the debounced function asynchronously
 
-        # Perform search after debounce
-        if debounce_timer is None:
-            perform_search(data, search_term, stdscr)  # Pass stdscr to display results
+            # Perform search after debounce
+            if debounce_timer is None:
+                perform_search(data, search_term, stdscr)  # Pass stdscr to display results
+
+    except KeyboardInterrupt:
+        # Handle Ctrl+C gracefully
+        stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
+        stdscr.refresh()
+        stdscr.getch()  # Wait for a key press before exiting
 
     stdscr.addstr(curses.LINES - 1, 0, "Exiting... Press any key.")
     stdscr.refresh()
