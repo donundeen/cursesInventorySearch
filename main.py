@@ -17,6 +17,8 @@ scroll_position = 0  # Initialize scroll_position globally
 results = pd.DataFrame()  # Initialize results as an empty DataFrame
 warning = ""  # Initialize warning as an empty string
 
+MAX_SEARCH_TERM_LENGTH = 100  # Set a maximum length for the search term
+
 # Function to read data from Google Sheets CSV
 async def load_data(sheet_url):
     """Asynchronously read data from Google Sheets CSV"""
@@ -89,7 +91,7 @@ async def speak_text(text):
             pass  # Silently fail if flite isn't available
 
 async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
-    global scroll_position, warning, debounce_timer
+    global scroll_position, warning, debounce_timer, MAX_SEARCH_TERM_LENGTH  # Include MAX_SEARCH_TERM_LENGTH
 
     # Handle special keys
     if key in (curses.KEY_BREAK, 27):  # ESC key or Break key
@@ -114,12 +116,16 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             scroll_position += 1
     elif 0 <= key < 256:  # Check if key is a valid character code
         # Insert character at cursor position
-        search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
-        cursor_pos += 1
-        scroll_position = 0
+        if len(search_term) < MAX_SEARCH_TERM_LENGTH:  # Check length before adding
+            search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
+            cursor_pos += 1
+            scroll_position = 0
     else:
         # Ignore other keys
         return search_term, cursor_pos, True
+
+    # Ensure cursor position does not exceed the length of the search term
+    cursor_pos = min(cursor_pos, len(search_term))
 
     # Reset the debounce timer on any key press
     reset_debounce_timer(results, search_term, stdscr)  # Pass results, search_term, and stdscr to reset_debounce_timer
@@ -202,12 +208,19 @@ def display_results(stdscr, results, scroll_position, warning):
 
 # Curses-based UI
 async def main(stdscr):
-    global scroll_position, results, warning  # Declare globals to modify them
+    global scroll_position, results, warning, MAX_SEARCH_TERM_LENGTH  # Declare globals to modify them
 
     # Initialize color pairs
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     stdscr.bkgd(' ', curses.color_pair(1))  # Set default background
+
+        # Get terminal dimensions
+    height = curses.LINES
+    width = curses.COLS
+
+    # Set MAX_SEARCH_TERM_LENGTH based on terminal width
+    MAX_SEARCH_TERM_LENGTH = width - 25  # Leave some space for padding
     
     # Enable cursor blinking
     curses.curs_set(2)  # 2 = blinking cursor, 1 = visible steady cursor, 0 = invisible
