@@ -87,6 +87,7 @@ async def speak_text(text):
     if text.strip():  # Only speak if there's actual text
         try:
             #await asyncio.to_thread(subprocess.run, ['flite', '-t', text], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            await asyncio.to_thread(subprocess.run, ['flite', '-t', ""], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass  # Silently fail if flite isn't available
 
