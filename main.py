@@ -178,6 +178,7 @@ def reset_debounce_timer(data, search_term, stdscr):  # Pass data, search_term, 
     debounce_timer.start()
 
 def display_results(stdscr, results, scroll_position, warning):
+    logging.debug("Displaying results")
     stdscr.addstr(4, 1, "Results:", curses.color_pair(1))
     stdscr.addstr(5, 0, " " * 80)  # Clear previous results
 
