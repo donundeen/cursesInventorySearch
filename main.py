@@ -37,6 +37,14 @@ def restart_script():
     print("Restarting the script...")
     os.execv(sys.executable, ['python'] + sys.argv)
 
+def reset_terminal():
+    """Reset the terminal using ANSI escape codes."""
+    if os.name == 'posix':  # For Unix-like systems
+        os.system('clear')  # Clear the terminal
+        print("\033c", end='')  # Send the reset escape code
+    elif os.name == 'nt':  # For Windows
+        os.system('cls')  # Clear the terminal
+
 
 # Function to read data from Google Sheets CSV
 async def load_data(sheet_url):
@@ -156,7 +164,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             # Terminate the fbi process
             fbi_process.terminate()  # Send SIGTERM to the fbi process
             fbi_process.wait()  # Wait for the process to terminate
-
+            reset_terminal()
             restart_script()
 
             # Clear the screen and return to the console app
