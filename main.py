@@ -140,9 +140,12 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             # Show the image using fbi in quiet mode in a separate process
             search_term = ""
             subprocess.run(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
-            time.sleep(3)  # Show the image for 1 second
+            time.sleep(1)  # Show the image for 1 second
             
             # Clear the screen and return to the console app
+            stdscr.clear()  # Clear the screen
+            stdscr.refresh()  # Refresh the screen to return to the console app
+            time.sleep(3)  # Show the image for 1 second
             stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
             logging.debug("Skibidi cleared")
