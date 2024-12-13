@@ -29,6 +29,13 @@ MAX_SEARCH_TERM_LENGTH = 100  # Set a maximum length for the search term
 
 skibidi = False
 
+
+def restart_script():
+    """Restart the current script."""
+    print("Restarting the script...")
+    os.execv(sys.executable, ['python'] + sys.argv)
+
+
 # Function to read data from Google Sheets CSV
 async def load_data(sheet_url):
     """Asynchronously read data from Google Sheets CSV"""
@@ -139,11 +146,17 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             logging.debug("Skibidi detected")
             # Show the image using fbi in quiet mode in a separate process
             search_term = "nope"
-            subprocess.Popen(['tmux', 'new-session', '-d', 'sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
+            fbiprocess = subprocess.Popen(['tmux', 'new-session', '-d', 'sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
 
 #            subprocess.run(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
             time.sleep(1)  # Show the image for 1 second
             
+            # Terminate the fbi process
+            fbi_process.terminate()  # Send SIGTERM to the fbi process
+            fbi_process.wait()  # Wait for the process to terminate
+
+            restart_script()
+
             # Clear the screen and return to the console app
             stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
