@@ -129,7 +129,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             skibidi = True
             # Show the image using fbi in quiet mode in a separate process
             subprocess.run(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
-            time.sleep(1)  # Show the image for 1 second
+            time.sleep(3)  # Show the image for 1 second
             search_term = ""
             
             # Clear the screen and return to the console app
@@ -262,9 +262,7 @@ async def main(stdscr):
     try:
         while True:
             stdscr.clear()
-            
-            print("display loop")
-
+          
             # Get terminal dimensions
             height = curses.LINES
             width = curses.COLS
