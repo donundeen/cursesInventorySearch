@@ -138,7 +138,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
         if search_term.lower() == "skibidi":
             logging.debug("Skibidi detected")
             # Show the image using fbi in quiet mode in a separate process
-            search_term = ""
+            search_term = "nope"
             subprocess.Popen(['tmux', 'new-session', '-d', 'sudo','fbi', '-T', '1', '-a', './skibity.jpg'])
 
 #            subprocess.run(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
