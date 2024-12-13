@@ -5,7 +5,15 @@ import re
 import subprocess
 import threading
 import time
+import logging
 from threading import Timer
+
+# Configure logging
+logging.basicConfig(
+    filename='app.log',  # Log file name
+    level=logging.DEBUG,  # Log level
+    format='%(asctime)s - %(levelname)s - %(message)s'  # Log message format
+)
 
 # Add these variables at the global scope
 speech_timer = None
@@ -96,6 +104,8 @@ async def speak_text(text):
 async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
     global scroll_position, warning, debounce_timer, MAX_SEARCH_TERM_LENGTH, skibidi  # Include MAX_SEARCH_TERM_LENGTH
 
+
+    logging.debug(f"Key pressed: {key}")
     # Handle special keys
     if key in (curses.KEY_BREAK, 27):  # ESC key or Break key
         # Ignore these keys and do nothing
@@ -126,6 +136,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
 
         # Check if the search term matches "skibity"
         if search_term.lower() == "skibidi" and not skibidi:
+            logging.debug("Skibidi detected")
             skibidi = True
             # Show the image using fbi in quiet mode in a separate process
             search_term = ""
@@ -135,7 +146,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             # Clear the screen and return to the console app
             stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
-            skibidi = False
+            logging.debug("Skibidi cleared")
         else:
             skibidi = False
 
