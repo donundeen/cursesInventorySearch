@@ -125,7 +125,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
         # Check if the search term matches "skibity"
         if search_term.lower() == "skibity":
             # Show the image using fbi in quiet mode in a separate process
-            subprocess.Popen(['sudo','fbi', '-q', '-T', '1', '-a', './skibity.jpg'])
+            subprocess.Popen(['sudo','fbi', '-noverbose','-nocomments''-T', '1', '-a', './skibity.jpg'])
             time.sleep(1)  # Show the image for 1 second
             
             # Clear the screen and return to the console app
