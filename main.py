@@ -151,6 +151,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             cursor_pos += 1
             scroll_position = 0
 
+        '''
         # Check if the search term matches "skibity"
         if search_term.lower() == "skibidi":
             logging.debug("Skibidi detected")
@@ -171,6 +172,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
             logging.debug("Skibidi cleared")
+        '''
 
     else:
         # Ignore other keys
