@@ -132,8 +132,6 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             time.sleep(1)  # Show the image for 1 second
             stdscr.clear()  # Clear the screen after showing the image
             stdscr.refresh()  # Refresh the screen to return to the console app
-
-
     else:
         # Ignore other keys
         return search_term, cursor_pos, True
