@@ -125,7 +125,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
         # Check if the search term matches "skibity"
         if search_term.lower() == "skibity":
             # Show the image using fbi
-            subprocess.run(['fbi', '-T', '1', '-a', './skibity.jpg'])
+            subprocess.run(['sudo', 'fbi', '-T', '1', '-a', './skibity.jpg'])
             time.sleep(10)  # Show the image for 1 second
             stdscr.clear()  # Clear the screen after showing the image
             stdscr.refresh()  # Refresh the screen to return to the console app
