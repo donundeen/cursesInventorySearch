@@ -152,7 +152,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             scroll_position = 0
 
         '''
-        # Check if the search term matches "skibity"
+        # Check if the search term matches "skibidi"
         if search_term.lower() == "skibidi":
             logging.debug("Skibidi detected")
             # Show the image using fbi in quiet mode in a separate process
