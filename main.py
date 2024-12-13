@@ -121,19 +121,17 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
             cursor_pos += 1
             scroll_position = 0
+
         # Check if the search term matches "skibity"
-        if search_term.lower().endswith("skibity"):
-            # Show the image using fbi
-            subprocess.run(['sudo', 'fbi', '-T', '1', '-a', './skibity.jpg'])
+        if search_term.lower() == "skibity":
+            # Show the image using fbi in quiet mode in a separate process
+            subprocess.Popen(['fbi', '-q', '-T', '1', '-a', '/path/to/your/skibity.jpg'])
             time.sleep(1)  # Show the image for 1 second
-            stdscr.clear()  # Clear the screen after showing the image
+            
+            # Clear the screen and return to the console app
+            stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
-            '''
-            subprocess.run(['sudo', 'fbi', '-T', '1', '-a', '/dev/zero'])
-            time.sleep(1)  # Show the image for 1 second
-            stdscr.clear()  # Clear the screen after showing the image
-            stdscr.refresh()  # Refresh the screen to return to the console app
-            '''
+
     else:
         # Ignore other keys
         return search_term, cursor_pos, True
