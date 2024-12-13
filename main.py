@@ -19,6 +19,8 @@ warning = ""  # Initialize warning as an empty string
 
 MAX_SEARCH_TERM_LENGTH = 100  # Set a maximum length for the search term
 
+skibidi = False
+
 # Function to read data from Google Sheets CSV
 async def load_data(sheet_url):
     """Asynchronously read data from Google Sheets CSV"""
@@ -92,7 +94,7 @@ async def speak_text(text):
             pass  # Silently fail if flite isn't available
 
 async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
-    global scroll_position, warning, debounce_timer, MAX_SEARCH_TERM_LENGTH  # Include MAX_SEARCH_TERM_LENGTH
+    global scroll_position, warning, debounce_timer, MAX_SEARCH_TERM_LENGTH, skibidi  # Include MAX_SEARCH_TERM_LENGTH
 
     # Handle special keys
     if key in (curses.KEY_BREAK, 27):  # ESC key or Break key
@@ -123,7 +125,8 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             scroll_position = 0
 
         # Check if the search term matches "skibity"
-        if search_term.lower() == "skibity":
+        if search_term.lower() == "skibidi" and not skibidi:
+            skibidi = True
             # Show the image using fbi in quiet mode in a separate process
             subprocess.Popen(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
             time.sleep(1)  # Show the image for 1 second
@@ -131,6 +134,8 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             # Clear the screen and return to the console app
             stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
+        else:
+            skibidi = False
 
     else:
         # Ignore other keys
