@@ -128,13 +128,14 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
         if search_term.lower() == "skibidi" and not skibidi:
             skibidi = True
             # Show the image using fbi in quiet mode in a separate process
+            search_term = ""
             subprocess.run(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
             time.sleep(3)  # Show the image for 1 second
-            search_term = ""
             
             # Clear the screen and return to the console app
             stdscr.clear()  # Clear the screen
             stdscr.refresh()  # Refresh the screen to return to the console app
+            skibidi = False
         else:
             skibidi = False
 
