@@ -146,7 +146,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             logging.debug("Skibidi detected")
             # Show the image using fbi in quiet mode in a separate process
             search_term = "nope"
-            fbiprocess = subprocess.Popen(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
+            fbi_process = subprocess.Popen(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
 
 #            subprocess.run(['sudo','fbi', '-noverbose','-nocomments','-T', '1', '-a', './skibity.jpg'])
             time.sleep(1)  # Show the image for 1 second
