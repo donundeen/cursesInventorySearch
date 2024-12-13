@@ -116,7 +116,11 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
         if len(results) > scroll_position + (curses.LINES - 7):
             scroll_position += 1
     elif 0 <= key < 256:  # Check if key is a valid character code
-
+        # Insert character at cursor position
+        if len(search_term) < MAX_SEARCH_TERM_LENGTH:  # Check length before adding
+            search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
+            cursor_pos += 1
+            scroll_position = 0
         # Check if the search term matches "skibity"
         if search_term.lower().endswith("skibity"):
             # Show the image using fbi
@@ -127,11 +131,7 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             subprocess.run(['sudo', 'fbi', '-T', '1', '-a', '/dev/zero'])
             stdscr.clear()  # Clear the screen after showing the image
             stdscr.refresh()  # Refresh the screen to return to the console app
-        # Insert character at cursor position
-        if len(search_term) < MAX_SEARCH_TERM_LENGTH:  # Check length before adding
-            search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
-            cursor_pos += 1
-            scroll_position = 0
+
 
     else:
         # Ignore other keys
