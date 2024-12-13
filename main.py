@@ -120,6 +120,15 @@ async def handle_key_input(stdscr, key, search_term, cursor_pos, results):
             search_term = search_term[:cursor_pos] + chr(key) + search_term[cursor_pos:]
             cursor_pos += 1
             scroll_position = 0
+
+        # Check if the search term matches "skibity"
+        if search_term.lower() == "skibity":
+            # Show the image using fbi
+            subprocess.run(['fbi', '-T', '1', '-a', '/path/to/your/skibity.jpg'])
+            time.sleep(1)  # Show the image for 1 second
+            stdscr.clear()  # Clear the screen after showing the image
+            stdscr.refresh()  # Refresh the screen to return to the console app
+
     else:
         # Ignore other keys
         return search_term, cursor_pos, True
